@@ -69,7 +69,7 @@ pipeline {
                          currentBuild.result = 'UNSTABLE'
                     }
                     if(apply){
-                        //dir('jenkins-terraform-pipeline/ec2_pipeline/'){
+                        dir('/home/ubuntu/triche/'){
                             unstash "terraform-plan"
                             sh 'terraform apply terraform.tfplan' 
                         }
