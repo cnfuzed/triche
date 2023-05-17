@@ -1,80 +1,48 @@
+
 pipeline {
     agent any
-    tools {
-        "org.jenkinsci.plugins.terraform.TerraformInstallation" "terraform"
-    }
-    parameters {
-        string(name: 'WORKSPACE', defaultValue: 'development', description:'setting up workspace for terraform')
-    }
+
     environment {
-        TF_HOME = tool('terraform')
-        TP_LOG = "WARN"
-        PATH = "$TF_HOME:$PATH"
-        ACCESS_KEY = credentials('AWS_ACCESS_KEY_ID')
-        SECRET_KEY = credentials('AWS_SECRET_ACCESS_KEY')
+        AWS_DEFAULT_REGION = 'your_aws_region'  // Replace with your desired AWS region
+        AWS_ACCESS_KEY_ID = credentials('1').accessKeyId  // Replace with the AWS credentials ID configured in Jenkins
+        AWS_SECRET_ACCESS_KEY = credentials('1').secretAccessKey  // Replace with the AWS credentials ID configured in Jenkins
     }
+pipeline {
+    agent any
+
     stages {
-            stage('TerraformInit'){
+        stage('Checkout') {
             steps {
-                dir('/home/ubuntu/triche/'){
-                    sh "terraform init -input=false"
-                    sh "echo \$PWD"
-                    sh "whoami"
-                }
+                // Checkout your Terraform files from version control system (e.g., Git)
+                git branch: 'main', url: 'https://github.com/cnfuzed/hello.git'
             }
         }
 
-        stage('TerraformFormat'){
+        stage('Terraform Init') {
             steps {
-                dir('/home/ubuntu/triche/'){
-                    sh "terraform fmt -list=true -write=false -diff=true -check=true"
-                }
+                // Initialize Terraform in the working directory
+                sh 'terraform init'
             }
         }
 
-        stage('TerraformValidate'){
+        stage('Terraform Plan') {
             steps {
-                dir('/home/ubuntu/triche/'){
-                    sh "terraform validate"
-                }
+                // Run Terraform plan to preview changes
+                sh 'terraform plan -out=tfplan'
             }
         }
 
-        stage('TerraformPlan'){
+        stage('Terraform Apply') {
             steps {
-                dir('/home/ubuntu/triche/'){
-                    script {
-                        try {
-                            sh "terraform workspace new ${params.WORKSPACE}"
-                        } catch (err) {
-                            sh "terraform workspace select ${params.WORKSPACE}"
-                        }
-                        sh "terraform plan -var 'access_key=$ACCESS_KEY' -var 'secret_key=$SECRET_KEY' \
-                        -out terraform.tfplan;echo \$? > status"
-                        stash name: "terraform-plan", includes: "terraform.tfplan"
-                    }
-                }
+                // Apply the changes using the previously generated plan
+                sh 'terraform apply tfplan'
             }
         }
-        
-        stage('TerraformApply'){
+
+        stage('Terraform Destroy') {
             steps {
-                script{
-                    def apply = false
-                    try {
-                        input message: 'Can you please confirm the apply', ok: 'Ready to Apply the Config'
-                        apply = true
-                    } catch (err) {
-                        apply = false
-                         currentBuild.result = 'UNSTABLE'
-                    }
-                    if(apply){
-                        dir('/home/ubuntu/triche/'){
-                            unstash "terraform-plan"
-                            sh 'terraform apply terraform.tfplan' 
-                        }
-                    }
-                }
+                // Destroy the infrastructure created by Terraform
+                sh 'terraform destroy -auto-approve'
             }
         }
     }
