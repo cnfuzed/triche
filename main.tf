@@ -1,5 +1,8 @@
 provider "aws" {
   region = "us-east-2"
+  assume "role" {
+    role_arn = "arn:aws:iam::267891377259:role/Pullrolejenk"
+  }
 }
 
 resource "aws_instance" "example" {
