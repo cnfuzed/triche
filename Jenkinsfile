@@ -1,5 +1,8 @@
 pipeline {
     agent any
+    tools {
+    terraform "terraform-0.8.8"
+    }
     parameters {
         string(name: 'WORKSPACE', defaultValue: 'development', description:'setting up workspace for terraform')
     }
@@ -13,7 +16,7 @@ pipeline {
     stages {
             stage('TerraformInit'){
             steps {
-                dir('/home/ubuntu/triche/'){
+                dir('cnfuzed/triche/'){
                     sh "terraform init -input=false"
                     sh "echo \$PWD"
                     sh "whoami"
@@ -23,7 +26,7 @@ pipeline {
 
         stage('TerraformFormat'){
             steps {
-                dir('/home/ubuntu/triche/'){
+                dir('cnfuzed/triche/'){
                     sh "terraform fmt -list=true -write=false -diff=true -check=true"
                 }
             }
@@ -31,7 +34,7 @@ pipeline {
 
         stage('TerraformValidate'){
             steps {
-                dir('/home/ubuntu/triche/'){
+                dir('cnfuzed/triche/'){
                     sh "terraform validate"
                 }
             }
@@ -39,7 +42,7 @@ pipeline {
 
         stage('TerraformPlan'){
             steps {
-                dir('/home/ubuntu/triche/'){
+                dir('cnfuzed/triche/'){
                     script {
                         try {
                             sh "terraform workspace new ${params.WORKSPACE}"
@@ -66,7 +69,7 @@ pipeline {
                          currentBuild.result = 'UNSTABLE'
                     }
                     if(apply){
-                        dir('/home/ubuntu/triche'){
+                        dir('cnfuzed/triche/'){
                             unstash "terraform-plan"
                             sh 'terraform apply terraform.tfplan' 
                         }
