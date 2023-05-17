@@ -16,7 +16,7 @@ pipeline {
     stages {
             stage('TerraformInit'){
             steps {
-                //dir('jenkins-terraform-pipeline/ec2_pipeline/'){
+                dir('/home/ubuntu/triche/'){
                     sh "terraform init -input=false"
                     sh "echo \$PWD"
                     sh "whoami"
@@ -26,7 +26,7 @@ pipeline {
 
         stage('TerraformFormat'){
             steps {
-                //dir('jenkins-terraform-pipeline/ec2_pipeline/'){
+                dir('/home/ubuntu/triche/'){
                     sh "terraform fmt -list=true -write=false -diff=true -check=true"
                 }
             }
@@ -34,7 +34,7 @@ pipeline {
 
         stage('TerraformValidate'){
             steps {
-                //dir('jenkins-terraform-pipeline/ec2_pipeline/'){
+                dir('/home/ubuntu/triche/'){
                     sh "terraform validate"
                 }
             }
@@ -42,7 +42,7 @@ pipeline {
 
         stage('TerraformPlan'){
             steps {
-                //dir('jenkins-terraform-pipeline/ec2_pipeline/'){
+                dir('/home/ubuntu/triche/'){
                     script {
                         try {
                             sh "terraform workspace new ${params.WORKSPACE}"
