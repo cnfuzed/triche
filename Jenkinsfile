@@ -1,7 +1,7 @@
 pipeline {
     agent any
     tools {
-    terraform "terraform-0.8.8"
+    terraform "Terraform 1.4.6"
     }
     parameters {
         string(name: 'WORKSPACE', defaultValue: 'development', description:'setting up workspace for terraform')
