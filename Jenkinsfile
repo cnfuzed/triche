@@ -16,7 +16,7 @@ pipeline {
     stages {
             stage('TerraformInit'){
             steps {
-                dir('/triche/'){
+                {
                     sh "terraform init -input=false"
                     sh "echo \$PWD"
                     sh "whoami"
@@ -26,7 +26,7 @@ pipeline {
 
         stage('TerraformFormat'){
             steps {
-                dir('/triche/'){
+                {
                     sh "terraform fmt -list=true -write=false -diff=true -check=true"
                 }
             }
@@ -34,7 +34,7 @@ pipeline {
 
         stage('TerraformValidate'){
             steps {
-                dir('/triche/'){
+                {
                     sh "terraform validate"
                 }
             }
@@ -42,7 +42,7 @@ pipeline {
 
         stage('TerraformPlan'){
             steps {
-                dir('/triche/'){
+                {
                     script {
                         try {
                             sh "terraform workspace new ${params.WORKSPACE}"
@@ -69,7 +69,7 @@ pipeline {
                          currentBuild.result = 'UNSTABLE'
                     }
                     if(apply){
-                        dir('/triche/'){
+                        {
                             unstash "terraform-plan"
                             sh 'terraform apply terraform.tfplan' 
                         }
