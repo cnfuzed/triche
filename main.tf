@@ -32,7 +32,7 @@ resource "aws_security_group" "custom_sg" {
   }
 }
 
-resource "aws_instance" "example" {
+resource "aws_instance" "Jenkins" {
   ami                    = "ami-083eed19fc801d7a4"
   instance_type          = "t2.micro"
   key_name               = "lab6"
@@ -40,7 +40,20 @@ resource "aws_instance" "example" {
   vpc_security_group_ids = [aws_security_group.custom_sg.id]
 }
 
+
+# resource block for eip #
+resource "aws_eip" "myeip" {
+  vpc = true
+}
+
+# resource block for ec2 and eip association #
+resource "aws_eip_association" "eip_assoc" {
+  instance_id   = aws_instance.Jenkins.id
+  allocation_id = aws_eip.myeip.id
+}
+
+
 output "instance_public_ip" {
-  value       = aws_instance.example.public_ip
+  value       = aws_instance.Jenkins.public_ip
   description = "The public IP address of the EC2 instance"
 }
