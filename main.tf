@@ -1,70 +1,104 @@
+# Define provider and region
 provider "aws" {
   region = "us-east-2"
 }
 
-resource "aws_vpc" "JenkinsVCP" {
-  cidr_block = "192.0.0.0/16"
+# Create VPC
+resource "aws_vpc" "automate" {
+  cidr_block = "192.168.0.0/16"
+
+  tags = {
+    Name = "automate-vpc"
+  }
 }
 
-resource "aws_subnet" "JenkinsVCP_subnet" {
-  vpc_id            = aws_vpc.JenkinsVCP_vpc.id
-  cidr_block        = "192.0.0.0/24"
+# Create public subnet 1
+resource "aws_subnet" "public_subnet_1" {
+  vpc_id            = aws_vpc.automate.id
+  cidr_block        = "192.168.1.0/24"
   availability_zone = "us-east-2a"
-}
 
-resource "aws_security_group" "Jenkins_sg" {
-  name        = "my-ec2-sg"
-  description = "Security group for EC2 instance"
-  vpc_id      = aws_vpc.JenkinsVCP_vpc.id
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+  tags = {
+    Name = "automate-public-subnet-1"
   }
 }
-resource "aws_internet_gateway" "Jenkin-NAT" {
-  vpc_id = aws_vpc.Jenkins-NAT.id
-}
-resource "aws_instance" "Jenkins" {
-  ami                    = "ami-083eed19fc801d7a4"
-  instance_type          = "t2.micro"
-  key_name               = "lab6"
-  subnet_id              = aws_subnet.custom_subnet.id
-  vpc_security_group_ids = [aws_security_group.custom_sg.id]
+
+# Create public subnet 2
+resource "aws_subnet" "public_subnet_2" {
+  vpc_id            = aws_vpc.automate.id
+  cidr_block        = "192.168.2.0/24"
+  availability_zone = "us-east-2b"
+
+  tags = {
+    Name = "automate-public-subnet-2"
+  }
 }
 
+# Create private subnet 1
+resource "aws_subnet" "private_subnet_1" {
+  vpc_id            = aws_vpc.automate.id
+  cidr_block        = "192.168.3.0/24"
+  availability_zone = "us-east-2a"
 
-# resource block for eip #
-resource "aws_eip" "myeip" {
+  tags = {
+    Name = "automate-private-subnet-1"
+  }
+}
+
+# Create private subnet 2
+resource "aws_subnet" "private_subnet_2" {
+  vpc_id            = aws_vpc.automate.id
+  cidr_block        = "192.168.4.0/24"
+  availability_zone = "us-east-2b"
+
+  tags = {
+    Name = "automate-private-subnet-2"
+  }
+}
+
+# Create NAT gateway
+resource "aws_nat_gateway" "automate" {
+  allocation_id = aws_eip.nat_eip.id
+  subnet_id     = aws_subnet.public_subnet_1.id
+}
+
+# Create Elastic IP for NAT gateway
+resource "aws_eip" "nat_eip" {
   vpc = true
+
+  tags = {
+    Name = "automate-nat-eip"
+  }
 }
 
-# resource block for ec2 and eip association #
-resource "aws_eip_association" "eip_assoc" {
-  instance_id   = aws_instance.Jenkins.id
-  allocation_id = aws_eip.myeip.id
+# Launch Amazon Linux 2 instance
+resource "aws_instance" "automate" {
+  ami           = "ami-0c94855ba95c71c99" # Replace with the desired Amazon Linux 2 AMI ID
+  instance_type = "t2.micro"
+  subnet_id     = aws_subnet.public_subnet_1.id
+
+  tags = {
+    Name = "automate-instance"
+  }
 }
 
-resource "aws_internet_gateway" "Jenkins" {
-  vpc_id = aws_vpc.Jenkins.id
+# Associate public EIP with the instance
+resource "aws_eip_association" "automate" {
+  instance_id   = aws_instance.automate.id
+  allocation_id = aws_eip.instance_eip.id
 }
 
-output "instance_public_ip" {
-  value       = aws_instance.Jenkins.public_ip
-  description = "The public IP address of the EC2 instance"
+# Create Elastic IP for the instance
+resource "aws_eip" "instance_eip" {
+  vpc = true
+
+  tags = {
+    Name = "automate-instance-eip"
+  }
 }
+
+# Output the EIP assigned to the instance
+output "instance_eip" {
+  value = aws_eip.instance_eip.public_ip
+}
+
