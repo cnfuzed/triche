@@ -116,7 +116,7 @@ resource "aws_route_table_association" "private_subnet_2_association" {
 
 # Create Amazon Linux 2 instance
 resource "aws_instance" "automate_jenkins" {
-  ami                    = "ami-0c94855ba95c71c99" # Replace with the desired Amazon Linux 2 AMI ID
+  ami                    = "ami-083eed19fc801d7a4" # Replace with the desired Amazon Linux 2 AMI ID
   instance_type          = "t2.micro"
   subnet_id              = aws_subnet.public_subnet_1.id
   vpc_security_group_ids = [aws_security_group.automate_jenkins_sg.id]
