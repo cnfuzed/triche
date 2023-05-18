@@ -116,9 +116,10 @@ resource "aws_route_table_association" "private_subnet_2_association" {
 
 # Create Amazon Linux 2 instance
 resource "aws_instance" "automate_jenkins" {
-  ami           = "ami-0c94855ba95c71c99" # Replace with the desired Amazon Linux 2 AMI ID
-  instance_type = "t2.micro"
-  subnet_id     = aws_subnet.public_subnet_1.id
+  ami                    = "ami-0c94855ba95c71c99" # Replace with the desired Amazon Linux 2 AMI ID
+  instance_type          = "t2.micro"
+  subnet_id              = aws_subnet.public_subnet_1.id
+  vpc_security_group_ids = [aws_security_group.automate_jenkins_sg.id]
 
   tags = {
     Name = "Automate-Jenkins-instance"
@@ -162,12 +163,6 @@ resource "aws_security_group" "automate_jenkins_sg" {
   }
 }
 
-# Associate security group with the instance
-resource "aws_instance_security_group" "automate_jenkins_sg_association" {
-  instance_id       = aws_instance.automate_jenkins.id
-  security_group_id = aws_security_group.automate_jenkins_sg.id
-}
-
 # Allocate Elastic IP
 resource "aws_eip" "automate_jenkins_eip" {
   vpc = true
@@ -187,4 +182,3 @@ resource "aws_eip_association" "automate_jenkins_eip_association" {
 output "instance_eip" {
   value = aws_eip.automate_jenkins_eip.public_ip
 }
-
